@@ -2,8 +2,10 @@
 //
 
 #include <iostream>
+#include "001auto.h"
 using namespace std;
 
+/********************auto推导的特殊情况*************************/
 class Base
 {
 public:
@@ -22,9 +24,8 @@ public:
 	}
 };
 
-int main()
+void sample1()
 {
-	
 	Base* d = new Derived();	//实例化的是子类对象
 	d->f();			//Derived::f()
 	auto b = *d;	//利用auto类型推导获取到父类类型强转引用（使得重写失效）
@@ -32,8 +33,35 @@ int main()
 	auto& c = *d;	//auto &类型推导又是获取到实际对象的类型
 	c.f();			//Derived::f()
 	delete d;
+}
+/********************auto推导的特殊情况*************************/
+
+/********************C++17 auto作为非类型模板占位符**************************/
+template<auto N>
+void f1()
+{
+	cout << "非类型模板参数：" << N << endl;
+}
+
+void sample2()
+{
+	//目前模板非类型参数只支持char值和int值
+	f1<'c'>();	//c
+	f1<7>();	//7
+}
+/********************C++17 auto作为非类型模板占位符**************************/
+int main()
+{
+	//auto推导过程中的特殊情况
+	//sample1();
+
+	//C++17 auto作为非类型模板占位符
+	sample2();
+
 	return 0;
 }
+
+
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
 // 调试程序: F5 或调试 >“开始调试”菜单
