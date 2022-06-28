@@ -13,7 +13,7 @@ template<int Scale,char ... Unit_char>
 struct LengthUnit
 {
     constexpr static int value = Scale;    //单位相对于最细粒度计量的缩放比例
-    constexpr static char unit_str[sizeof...(Unit_char) + 1]{ Unit_char,'\0' };
+    constexpr static char unit_str[sizeof...(Unit_char) + 1]{ Unit_char...,'\0' };
 };
 
 /// <summary>
@@ -46,12 +46,11 @@ public:
     /// <typeparam name="U"></typeparam>
     /// <param name="rhs"></param>
     /// <returns></returns>
-    template<class U>
-    LengthWithUnit<std::conditional_t<(T::value > U::value), U, T>> operator+(const LengthWithUnit<U>& rhs)
-    {
-        using unit_type = std::conditional_t<(T::value > U::value), U, T>;
-        constexpr int scale = typename unit_type::value;
-        return LengthUnit<unit_type>((length_unit_ + rhs.get_length()) / scale);
+    template<typename U>  
+    LengthWithUnit<std::conditional_t<(T::value > U::value), U, T>> operator+(const LengthWithUnit<U>& rhs) 
+    { 
+        using unit_type = std::conditional_t<(T::value > U::value), U, T>;       
+        return LengthWithUnit<unit_type>((length_unit_ + rhs.get_length()) / unit_type::value); 
     }
 };
 
@@ -65,7 +64,7 @@ public:
 template<typename T>
 ostream& operator<<(ostream& out, const LengthWithUnit<T>& unit)
 {
-    out << unit.get_length() / T::value << unit.get_length();
+    out << unit.get_length() / T::value << unit.get_unit_str();
     return out;
 }
 
@@ -81,10 +80,44 @@ using LengthWithDMUnit = LengthWithUnit<DMUnit>;
 using LengthWithMUnit = LengthWithUnit<MUnit>; 
 using LengthWithKMUnit = LengthWithUnit<KMUnit>;
 
+/*
+*  <operator "" >文本运算符重载（我今天才知道还有这玩意！！！！）
+* 不能定义在类内
+* 运算参数类型只能为unsigned long long和string这两种
+*/
+LengthWithMMUnit operator "" _mm(unsigned long long length)
+{
+    return LengthWithMMUnit(length);
+}
+
+LengthWithCMUnit operator "" _cm(unsigned long long length)
+{
+    return LengthWithCMUnit(length);
+}
+
+LengthWithDMUnit operator "" _dm(unsigned long long length)
+{
+    return LengthWithDMUnit(length);
+}
+
+LengthWithMUnit operator "" _m(unsigned long long length)
+{
+    return LengthWithMUnit(length);
+}
+
+LengthWithKMUnit operator "" _km(unsigned long long length)
+{
+    return LengthWithKMUnit(length);
+}
+
 int main()
 {
     auto totalLength = LengthWithCMUnit(1) + LengthWithMUnit(2) + LengthWithMMUnit(4);
-    //cout << totalLength << endl;
+    cout << totalLength << endl;
+
+    auto totalLength2 = 90_km + 400_m;
+    cout << totalLength2 << endl;
+
     return 0;
 }
 
