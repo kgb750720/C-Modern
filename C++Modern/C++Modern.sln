@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "004结构化绑定", "004�
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "005用户自定义字面量", "005用户自定义字面量\005用户自定义字面量.vcxproj", "{5613B7E9-C22C-42F5-B6F0-D1ED7DA3FA42}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "006协程", "006协程\006协程.vcxproj", "{497F4633-2CE9-4109-9541-2F32C63BC018}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -61,6 +63,14 @@ Global
 		{5613B7E9-C22C-42F5-B6F0-D1ED7DA3FA42}.Release|x64.Build.0 = Release|x64
 		{5613B7E9-C22C-42F5-B6F0-D1ED7DA3FA42}.Release|x86.ActiveCfg = Release|Win32
 		{5613B7E9-C22C-42F5-B6F0-D1ED7DA3FA42}.Release|x86.Build.0 = Release|Win32
+		{497F4633-2CE9-4109-9541-2F32C63BC018}.Debug|x64.ActiveCfg = Debug|x64
+		{497F4633-2CE9-4109-9541-2F32C63BC018}.Debug|x64.Build.0 = Debug|x64
+		{497F4633-2CE9-4109-9541-2F32C63BC018}.Debug|x86.ActiveCfg = Debug|Win32
+		{497F4633-2CE9-4109-9541-2F32C63BC018}.Debug|x86.Build.0 = Debug|Win32
+		{497F4633-2CE9-4109-9541-2F32C63BC018}.Release|x64.ActiveCfg = Release|x64
+		{497F4633-2CE9-4109-9541-2F32C63BC018}.Release|x64.Build.0 = Release|x64
+		{497F4633-2CE9-4109-9541-2F32C63BC018}.Release|x86.ActiveCfg = Release|Win32
+		{497F4633-2CE9-4109-9541-2F32C63BC018}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
