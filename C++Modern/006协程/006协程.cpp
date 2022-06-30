@@ -18,7 +18,7 @@ using namespace std;
 * suspend_always initial_suspend() const noexcept;
 * suspend_always final_suspend() const noexcept;
 * suspend_always yield_value(<type>& value);
-* void return_void(){} 或 void return_value(int value)
+* void return_void(){} 或 void return_value(int value) （视编译器具体要求而定
 * void unhandled_exception(){}
 */
 struct my_int_generator
@@ -75,63 +75,15 @@ void example1()
 
 
 
-
-
-
-
-
-
-/*************** co_await 运算符 ****************/
-/*co_awit 后跟随的对象的类必须实现以下三个函数 :
-* bool awit_ready() const;  //协程是否可挂起
-* void await_suspend(std::experimental::coroutine_handle<> h) const; //调度协程执行流程
-* <type> await_resume() const;  //协程返回的结果
-*/
-
-//自定义的 string 子类可被 co_awit 运算符运算的类型
-//class awaitable_string :public string
-//{
-//public:
-//    using string::string;   //using 关键字直接引入父类string()的构造函数作为可选构造方式
-//    bool await_ready() const { return true; }   //该协程默认均为可挂起
-//    void await_suspend(coroutine_handle<> h) const //默认调度协程执行流程
-//    {
-//        std::thread t{ [h]() 
-//            {
-//                this_thread::sleep_for(3s);
-//                h();
-//            } 
-//        };
-//        t.detach();
-//    }
-//    string await_resume() const { return *this; }
-//};
-//
-//future<string> foo1()
-//{
-//    auto str = co_await awaitable_string{ "hello" };
-//    co_return str;
-//}
-//class awaitable_string : public std::string
-//{
-//public:
-//    using std::string::string;
-//    bool await_ready() const { return true; } 
-//    void await_suspend(std::coroutine_handle<> h) const {}  
-//    std::string await_resume() const { return *this; }
-//}; 
-//void foo1() 
-//{ 
-//    auto str = co_await awaitable_string{ "hello" };  
-//}
-/*************** co_await 运算符 ****************/
-
-
-
-
-
-
 /*************** co_return 运算符 ****************/
+/* 后跟对象必须实现promise_type类型内包类
+* promise_type内包类需包含以下四个函数：
+* <外部类型> get_return_object();
+* suspend_always initial_suspend() const noexcept;
+* suspend_always final_suspend() const noexcept;
+* void return_void(){} 或 void return_value(int value) （视编译器具体要求而定
+* void unhandled_exception(){}
+*/
 struct my_int_return
 {
     struct promise_type
@@ -144,22 +96,16 @@ struct my_int_return
         }
         auto final_suspend() const noexcept
         {
-            return suspend_never{};
-        }
-        auto yield_value(int& value)
-        {
-            value_ = value;
             return suspend_always{};
         }
         void unhandled_exception() {}
-/**********************************************************/
         void return_value(int value)
         {
             value_ = value;
         }
     };
 
-    explicit my_int_return(promise_type& p):handle_(coroutine_handle<promise_type>::from_promise(p))
+    explicit my_int_return(promise_type& p) :handle_(coroutine_handle<promise_type>::from_promise(p))
     {}
     ~my_int_return()
     {
@@ -176,26 +122,185 @@ struct my_int_return
             if (handle_.done())
             {
                 handle_.destroy();
+                handle_ = nullptr;
             }
         }
         return value_;
     }
-    
+
 
     coroutine_handle<promise_type> handle_;
     int value_ = 0;
     bool ready_ = false;
 };
 
-my_int_return foo()
+my_int_return foo2()
 {
     co_return 5;
 }
+
+void example2()
+{
+    auto obj = foo2();
+    cout << obj.get() << "\n";
+    cout << obj.get() << "\n";
+    cout << obj.get() << "\n";
+}
 /*************** co_return 运算符 ****************/
+
+
+
+
+
+/*************** co_await 运算符 ****************/
+/*co_awit 后跟随的对象的类必须实现以下三个函数 :
+* bool awit_ready() const;  //协程是否可挂起
+* void await_suspend(std::experimental::coroutine_handle<> h) const; //调度协程执行流程
+* <type> await_resume() const;  //协程返回的结果
+*/
+
+////自定义的 string 子类可被 co_awit 运算符运算的类型
+//class awaitable_string :public string
+//{
+//public:
+//    using string::string;   //using 关键字直接引入父类string()的构造函数作为可选构造方式
+//    awaitable_string(const string& str):string(str){}
+//    struct promise_type
+//    {
+//        string _val;
+//        string get_return_object()
+//        {
+//            return _val;
+//        }
+//        auto initial_suspend() const noexcept
+//        {
+//            return suspend_never();
+//        }
+//        auto final_suspend() const noexcept
+//        {
+//            return suspend_always();
+//        }
+//        void unhandled_exception() {}
+//        void return_value(string value)
+//        {
+//            _val = value;
+//        }
+//    };
+//    explicit awaitable_string(promise_type& p):handle_(coroutine_handle<promise_type>::from_promise(p))
+//    {}
+//    bool await_ready() const { return _ready; }   //false表示该协程默认均为可挂起
+//    void await_suspend(coroutine_handle<> h) //默认调度协程执行流程
+//    {
+//        fu = async([h, this]()
+//            {
+//                this_thread::sleep_for(5s);
+//                h();
+//                return string{this->c_str()};
+//            }
+//        );
+//    }
+//    string await_resume() const { return *this; }
+//    
+//
+//    string get()
+//    {
+//        bool b = handle_.done();
+//        return fu.get();
+//    }
+//    future<string> fu;
+//    coroutine_handle<promise_type> handle_;
+//    string value_;
+//    bool _ready = false;
+//};
+//
+//awaitable_string operator co_await(string&& str)
+//{
+//    co_return awaitable_string{ str };
+//}
+//
+////
+////template<typename T>
+////struct my_co_return
+////{
+////    struct promise_type
+////    {
+////        T value_;
+////        my_co_return<T> get_return_object() 
+////        { 
+////            return my_co_return<T>{ *this }; 
+////        }
+////        auto initial_suspend() const noexcept
+////        {
+////            return suspend_never();
+////        }
+////        auto final_suspend() const noexcept
+////        {
+////            return suspend_always();
+////        }
+////        void unhandled_exception() 
+////        {}
+////        void return_value(T&& value)
+////        {
+////            value_ = value;
+////        }
+////    };
+////
+////    explicit my_co_return(promise_type& p) :handle_(coroutine_handle<promise_type>::from_promise(p))
+////    {}
+////    ~my_co_return()
+////    {
+////        if (handle_)
+////            handle_.destroy();
+////    }
+////
+////    T get()
+////    {
+////         if (!ready_)
+////        {
+////            value_ = handle_.promise().value_;
+////            ready_ = true;
+////            if (handle_.done())
+////            {
+////                handle_.destroy();
+////                handle_ = nullptr;
+////            }
+////        }
+////        return value_;
+////    }
+////
+////
+////    coroutine_handle<promise_type> handle_;
+////    T value_;
+////    bool ready_ = false;
+////};
+//
+//awaitable_string foo3()
+//{
+//    auto str = co_await string{ "hello" };
+//    co_return str;
+//}
+
+void example3() 
+{ 
+    //auto s = foo3();
+    //cout << s.get();
+}
+/*************** co_await 运算符 ****************/
+
+
+
+
+
+
+
+
+
 
 int main()
 {
-    example1();
+    //example1();
+    //example2();
+    example3();
     return 0;
 }
 
