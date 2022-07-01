@@ -168,7 +168,6 @@ public:
     bool await_ready() const { return false; }   //false表示该协程默认均为可挂起
     void await_suspend(coroutine_handle<> h) //默认调度协程执行流程
     {
-        string test = *this;
         //切换线程
         thread t([=]()
             {
@@ -180,8 +179,7 @@ public:
     }
     string await_resume() const 
     { 
-        string ans = *this;
-        return ans; 
+        return *this; 
     }
 };
 
@@ -193,11 +191,12 @@ awaitable_string operator co_await(string&& str)
 
 /// <summary>
 /// 为coroutine_traits<>添加future<string>偏特化，以此使得co_return可以运算future<string>类型对象
+/// co_return若返回Type对象需要coroutine_traits<Type>具有包含promise_type内包类的偏特化版本
 /// </summary>
 template<>
 struct  std::coroutine_traits<std::future<string>>
 {
-    struct promise_type:promise<string>
+    struct promise_type:public promise<string>
     {
         future<string> get_return_object()
         {
@@ -221,8 +220,6 @@ struct  std::coroutine_traits<std::future<string>>
         }
     };
 };
-
-
 
 std::future<string> foo3()
 {
