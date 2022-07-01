@@ -159,131 +159,81 @@ void example2()
 * <type> await_resume() const;  //协程返回的结果
 */
 
-////自定义的 string 子类可被 co_awit 运算符运算的类型
-//class awaitable_string :public string
-//{
-//public:
-//    using string::string;   //using 关键字直接引入父类string()的构造函数作为可选构造方式
-//    awaitable_string(const string& str):string(str){}
-//    struct promise_type
-//    {
-//        string _val;
-//        string get_return_object()
-//        {
-//            return _val;
-//        }
-//        auto initial_suspend() const noexcept
-//        {
-//            return suspend_never();
-//        }
-//        auto final_suspend() const noexcept
-//        {
-//            return suspend_always();
-//        }
-//        void unhandled_exception() {}
-//        void return_value(string value)
-//        {
-//            _val = value;
-//        }
-//    };
-//    explicit awaitable_string(promise_type& p):handle_(coroutine_handle<promise_type>::from_promise(p))
-//    {}
-//    bool await_ready() const { return _ready; }   //false表示该协程默认均为可挂起
-//    void await_suspend(coroutine_handle<> h) //默认调度协程执行流程
-//    {
-//        fu = async([h, this]()
-//            {
-//                this_thread::sleep_for(5s);
-//                h();
-//                return string{this->c_str()};
-//            }
-//        );
-//    }
-//    string await_resume() const { return *this; }
-//    
-//
-//    string get()
-//    {
-//        bool b = handle_.done();
-//        return fu.get();
-//    }
-//    future<string> fu;
-//    coroutine_handle<promise_type> handle_;
-//    string value_;
-//    bool _ready = false;
-//};
-//
-//awaitable_string operator co_await(string&& str)
-//{
-//    co_return awaitable_string{ str };
-//}
-//
-////
-////template<typename T>
-////struct my_co_return
-////{
-////    struct promise_type
-////    {
-////        T value_;
-////        my_co_return<T> get_return_object() 
-////        { 
-////            return my_co_return<T>{ *this }; 
-////        }
-////        auto initial_suspend() const noexcept
-////        {
-////            return suspend_never();
-////        }
-////        auto final_suspend() const noexcept
-////        {
-////            return suspend_always();
-////        }
-////        void unhandled_exception() 
-////        {}
-////        void return_value(T&& value)
-////        {
-////            value_ = value;
-////        }
-////    };
-////
-////    explicit my_co_return(promise_type& p) :handle_(coroutine_handle<promise_type>::from_promise(p))
-////    {}
-////    ~my_co_return()
-////    {
-////        if (handle_)
-////            handle_.destroy();
-////    }
-////
-////    T get()
-////    {
-////         if (!ready_)
-////        {
-////            value_ = handle_.promise().value_;
-////            ready_ = true;
-////            if (handle_.done())
-////            {
-////                handle_.destroy();
-////                handle_ = nullptr;
-////            }
-////        }
-////        return value_;
-////    }
-////
-////
-////    coroutine_handle<promise_type> handle_;
-////    T value_;
-////    bool ready_ = false;
-////};
-//
-//awaitable_string foo3()
-//{
-//    auto str = co_await string{ "hello" };
-//    co_return str;
-//}
+//自定义的 string 子类可被 co_awit 运算符运算的类型
+class awaitable_string :public string
+{
+public:
+    using string::string;   //using 关键字直接引入父类string()的构造函数作为可选构造方式
+    awaitable_string(const string& str):string(str){}
+    bool await_ready() const { return false; }   //false表示该协程默认均为可挂起
+    void await_suspend(coroutine_handle<> h) //默认调度协程执行流程
+    {
+        string test = *this;
+        //切换线程
+        thread t([=]()
+            {
+                this_thread::sleep_for(5s);
+                h.resume();
+            }
+        );
+        t.detach(); //执行线程
+    }
+    string await_resume() const 
+    { 
+        string ans = *this;
+        return ans; 
+    }
+};
+
+awaitable_string operator co_await(string&& str)
+{
+    awaitable_string awaitable = awaitable_string(str);
+    return awaitable;
+}
+
+/// <summary>
+/// 为coroutine_traits<>添加future<string>偏特化，以此使得co_return可以运算future<string>类型对象
+/// </summary>
+template<>
+struct  std::coroutine_traits<std::future<string>>
+{
+    struct promise_type:promise<string>
+    {
+        future<string> get_return_object()
+        {
+            return this->get_future();
+        }
+        auto initial_suspend()
+        {
+            return suspend_never();
+        }
+        auto final_suspend() noexcept
+        {
+            return suspend_never();
+        }
+        void return_value(string value)
+        {
+            this->set_value(value);
+        }
+        void unhandled_exception()
+        {
+            this->set_exception(std::current_exception());
+        }
+    };
+};
+
+
+
+std::future<string> foo3()
+{
+    auto str = co_await string{ "hello" };
+    co_return str;
+}
 
 void example3() 
 { 
-    //auto s = foo3();
-    //cout << s.get();
+    auto s = foo3();
+    cout << s.get();
 }
 /*************** co_await 运算符 ****************/
 
