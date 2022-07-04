@@ -399,7 +399,26 @@ concept C2 = true;
 template<C2... T> 
 struct s2 {};
 //////////////////////////////////////////////
+
+//////////////////////////////////////////////
+// 约束auto
+template<typename C>
+concept IntergerType = is_integral_v<C>;
+
+void example10()
+{
+    IntergerType auto i1 = 4;
+    //IntergerType auto i2 = 5.0; 不能通过约束，编译失败
+}
+//////////////////////////////////////////////
 /*****************概念约束****************/
+
+
+
+/*****************针对不同类型的常量****************/
+template<typename T>
+constexpr T PI = static_cast<T>((3.1415926535897932385L);
+/*****************针对不同类型的常量****************/
 int main()
 {
     //example1();
@@ -410,6 +429,8 @@ int main()
     //example6();
     example7();
     example8();
+    example9();
+    example10();
     return 0;
 }
 

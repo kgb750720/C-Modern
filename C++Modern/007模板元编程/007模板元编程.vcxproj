@@ -141,6 +141,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="007模板元编程.cpp" />
+    <ClCompile Include="ExampleExternTemplate1.cpp" />
+    <ClCompile Include="ExampleExternTemplate2.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ExampleExternTemplate.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

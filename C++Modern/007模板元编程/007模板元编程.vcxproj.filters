@@ -18,5 +18,16 @@
     <ClCompile Include="007模板元编程.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="ExampleExternTemplate1.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ExampleExternTemplate2.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ExampleExternTemplate.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
